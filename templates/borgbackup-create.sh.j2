@@ -1,0 +1,30 @@
+#!/bin/sh
+
+test -z $HOST && export HOST={{ inventory_hostname }}
+test -z $BACKUP_DIRECTORY && export BACKUP_DIRECTORY={{ borg_backup_directory }}
+test -z $NOW && export NOW=$(date +%Y%m%d-%H%M%S)
+
+set -e
+
+{% for borg_precreate_command in borg_precreate_commands %}
+# precreate command
+{{ borg_precreate_command }}
+
+{% endfor %}
+
+
+echo "Create borg backup."
+{% if borg_passphrase %}. {{ borg_bin_directory}}/{{ borg_name }}/borgbackup-env.sh{% endif %}
+
+borg create --progress --stats{% if borg_exclude_paths %} --exclude-from {{ borg_bin_directory}}/{{ borg_name }}/filter-exclude.txt{% endif %} $BACKUP_DIRECTORY::$HOST-$NOW \
+{% for path in borg_include_paths[:-1] %}
+  {{ path }} \
+{% endfor %}
+  {{ borg_include_paths[-1] }}
+
+
+{% for borg_postcreate_command in borg_postcreate_commands %}
+# postcreate command
+{{ borg_postcreate_command }}
+
+{% endfor %}

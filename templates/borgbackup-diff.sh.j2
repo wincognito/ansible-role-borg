@@ -1,0 +1,9 @@
+#!/bin/sh
+
+test -z $BACKUP_DIRECTORY && export BACKUP_DIRECTORY={{ borg_backup_directory }}
+
+(test -z $1 || test -z $2) && echo "Please define Archive 1 and Archive 2 as arguments." && exit 1
+
+{% if borg_passphrase %}. {{ borg_bin_directory}}/{{ borg_name }}/borgbackup-env.sh{% endif %}
+
+borg diff $BACKUP_DIRECTORY::$@

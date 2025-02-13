@@ -1,0 +1,93 @@
+---
+
+- name: Set template names  
+  set_fact:
+    borgbackup_templates:
+    - create
+    - delete
+    - diff
+    - init
+    - list
+    - prune
+
+
+- name: Create directories
+  file:
+    path: "{{ item }}"
+    state: directory
+  become: true
+  loop:
+  - "{{ borg_bin_directory}}/{{ borg_name }}"
+
+
+- name: Create exclude filter file from template
+  template:
+    src: "templates/filter-exclude.txt.j2"
+    dest: "{{ borg_bin_directory}}/{{ borg_name }}/filter-exclude.txt"
+  become: true
+  when: borg_exclude_paths
+
+  
+- name: Remove exclude filter
+  file:
+    path: "{{ borg_bin_directory}}/{{ borg_name }}/filter-exclude.txt"
+    state: absent
+  become: true
+  when: not borg_exclude_paths
+
+
+- name: Create passphrase file
+  copy:
+    content: |
+     #!/bin/sh
+     export BORG_PASSPHRASE="{{ borg_passphrase }}"
+    dest: "{{ borg_bin_directory}}/{{ borg_name }}/borgbackup-env.sh"
+    mode: "0700"
+    owner: root
+    group: root
+  become: true
+  when: borg_passphrase is defined
+
+
+- name: Remove passphrase file
+  file:
+    path: "{{ borg_bin_directory}}/{{ borg_name }}/borgbackup-env.sh"
+    state: absent
+  become: true
+  when: borg_passphrase is not defined
+
+
+- name: Copy templates
+  block:
+
+  - name: Copy template
+    template:  
+      src: "templates/borgbackup-{{ item }}.sh.j2"
+      dest: "{{ borg_bin_directory}}/{{ borg_name }}/borgbackup-{{ item }}.sh"
+      mode: "0755"
+    loop: "{{ borgbackup_templates }}"
+
+  - name: Check if repository exists
+    stat:
+      path: "{{ borg_backup_directory }}"
+    register: borg_backup_directory_stat
+
+  - name: Initialize repository
+    command: "{{ borg_bin_directory}}/{{ borg_name }}/borgbackup-init.sh"
+    when: not borg_backup_directory_stat.stat.exists
+
+  - name: Activate automatic backup
+    cron:
+      name: "create borg backup"
+      minute: "{{ borg_automatic_backup_minute }}"
+      hour: "{{ borg_automatic_backup_hour }}"
+      job: "{{ borg_bin_directory}}/{{ borg_name }}/borgbackup-prune.sh && {{ borg_bin_directory}}/{{ borg_name }}/borgbackup-create.sh"
+    when: borg_automatic_backup
+
+  - name: Deactivate automatic backup
+    cron:
+      name: "create borg backup"
+      state: absent
+    when: not borg_automatic_backup    
+
+  become: true

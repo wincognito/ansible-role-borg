@@ -1,0 +1,40 @@
+---
+# defaults file for borg
+
+# is a subfolder in the `borg_bin_directory`,
+## there are placed executables
+borg_name: borg1
+
+# install, configure, destroy
+borg_mode: ""
+
+
+# encryption
+# repokey or repokey-blake2
+borg_encryption: repokey-blake2
+# details:
+# https://borgbackup.readthedocs.io/en/stable/usage/init.html#encryption-mode-tldr
+
+
+# borg_passphrase: 
+
+# borg_backup_directory: "/media/janosik"
+
+# a shell command, i.e. make mysql backup
+borg_precreate_commands: []
+
+# a shell command, i.e. delete mysql backup
+borg_postcreate_commands: []
+
+# Update crontab
+borg_automatic_backup: true
+borg_automatic_backup_hour: 3
+borg_automatic_backup_minute: 48
+
+
+## which paths should be included in backup
+# borg_include_paths:
+# - "/"
+
+borg_exclude_paths: "{{ borg_default_exclude_paths }}"
+borg_bin_directory: /opt/borg

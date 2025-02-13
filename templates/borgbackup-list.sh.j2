@@ -1,0 +1,8 @@
+#!/bin/sh
+
+test -z $BACKUP_DIRECTORY && export BACKUP_DIRECTORY={{ borg_backup_directory }}
+
+{% if borg_passphrase %}. {{ borg_bin_directory}}/{{ borg_name }}/borgbackup-env.sh{% endif %}
+
+test -z $1 && borg list $BACKUP_DIRECTORY
+test ! -z $1 && borg list $BACKUP_DIRECTORY::$@

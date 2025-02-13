@@ -1,0 +1,19 @@
+#!/bin/sh
+
+test -z $BACKUP_DIRECTORY && export BACKUP_DIRECTORY={{ borg_backup_directory }}
+
+set -e
+
+# Prepare folder
+test ! -d $BACKUP_DIRECTORY && echo "Creating '$BACKUP_DIRECTORY'." && mkdir $BACKUP_DIRECTORY
+
+
+echo "Changing permissions of '$BACKUP_DIRECTORY'."
+chmod 2770 $BACKUP_DIRECTORY
+
+
+# Create backup repository
+echo "Initialize borg."
+{% if borg_passphrase %}. {{ borg_bin_directory}}/{{ borg_name }}/borgbackup-env.sh{% endif %}
+
+borg init --encryption={{ borg_encryption }} $BACKUP_DIRECTORY

@@ -1,0 +1,8 @@
+---
+
+
+- name: destroy borg repository
+  file:
+    path: "{{ borg_backup_directory }}"
+    state: absent
+  become: true

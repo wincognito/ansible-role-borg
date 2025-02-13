@@ -1,0 +1,8 @@
+---
+
+- name: install borg backup
+  apt:
+    name: borgbackup
+    state: present
+    update_cache: yes
+  become: true

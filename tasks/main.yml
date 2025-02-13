@@ -1,0 +1,5 @@
+---
+# tasks file for borg
+
+- name: Process borg role
+  import_tasks: "{{ borg_mode }}.yml"

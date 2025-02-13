@@ -1,0 +1,7 @@
+#!/bin/sh
+
+test -z $BACKUP_DIRECTORY && export BACKUP_DIRECTORY={{ borg_backup_directory }}
+
+{% if borg_passphrase %}. /{{ borg_bin_directory}}/{{ borg_name }}/borgbackup-env.sh{% endif %}
+
+borg prune --save-space -v --list --keep-within=1d --keep-daily=7 --keep-weekly=4 --keep-monthly=6 --keep-yearly=1 $BACKUP_DIRECTORY
